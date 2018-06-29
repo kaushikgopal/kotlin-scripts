@@ -15,6 +15,8 @@ fun program(args: Array<String>) {
 
     val lines: Sequence<String> = resolveArgFile(args)
 
+
+    var voterCount: Int = 0
     var projectCsv: Map<Int, HProjectVoteResult> = emptyMap()
     var projectCsvWithResults: Map<Int, HProjectVoteResult> = emptyMap()
 
@@ -23,8 +25,12 @@ fun program(args: Array<String>) {
             projectCsv = processHeaderAndBuildMap(line)
         } else {
             projectCsvWithResults = processVote(projectCsv, line)
+            voterCount += 1
         }
     }
+
+    println("$voterCount folk(s) voted!")
+    println("-------------------------------------")
 
     printResults(projectCsvWithResults)
 }
@@ -76,17 +82,20 @@ fun processVote(
 
                 val voteResultWithoutQuote = voteResultColumn.removeSurrounding("\"")
                 if (voteResultWithoutQuote.isBlank()) return@loop
+                val voteResult: Int = voteResultWithoutQuote.toInt()
 
                 val position = index + 2 // we dropped 2 indices
 
                 val projectVoteResult: HProjectVoteResult = projectVoteResults[position]
                         ?: return@loop
+
                 val project: HProject = projectVoteResult.project
-                val voteResult: Int = voteResultWithoutQuote.toInt()
                 val voter: String = splitVote[1].removeSurrounding("\"")
 
                 projectVoteResult.points += voteResult.voteWeight()
+
                 projectVoteResult.voters.add(voter)
+                projectVoteResult.votes.add(voteResult)
                 // println("project '${project.name}' was voted '$voteResult' [${voteResult.voteWeight()}] in category '${project.category}' by '$voter'")
             }
 
@@ -169,10 +178,11 @@ data class HProjectVoteResult(
 //        val position: Int, // position in CSV
         val project: HProject,
         var points: Int = 0,
-        var voters: MutableList<String> = arrayListOf<String>()
+        var voters: MutableList<String> = arrayListOf<String>(),
+        var votes: MutableList<Int> = arrayListOf<Int>()
 ) {
     override fun toString(): String {
-        return "[${project.category}] ${project.name} ----> ${points}"
+        return "[${project.category}] ${project.name} ----> ${points}    <- ${votes}"
     }
 }
 
