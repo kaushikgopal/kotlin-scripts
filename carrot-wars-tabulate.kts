@@ -7,7 +7,14 @@ import kscript.text.*
  *              ---------- Carrot Wars 2018 ---------------
  * This is a program that'll tabulate the results for Instacart's 2018 Summer Hackathon
  *
+ * Run the program against the Google Forms CSV result like so:
+ *
+ * `kscript ~/path/to/this/kts/script/carrot-wars-tabulate.kts ./hackathon-votes.csv`
+ *  # to avoid path problems, run the command from the same directory as your CSV file
+ *
+ *
  * @param args - full path to CSV results file
+ *
  */
 fun program(args: Array<String>) {
 
@@ -35,8 +42,6 @@ fun program(args: Array<String>) {
     printResults(projectCsvWithResults)
 }
 
-
-// run this program like so `kotlinc -script list_folders.kts ~/code`
 println("******* PROGRAM START ***************** ")
 program(args)
 println("******* PROGRAM END ***************** ")
@@ -175,7 +180,6 @@ data class HProject(
  * Hackathon project result row
  */
 data class HProjectVoteResult(
-//        val position: Int, // position in CSV
         val project: HProject,
         var points: Int = 0,
         var voters: MutableList<String> = arrayListOf<String>(),
