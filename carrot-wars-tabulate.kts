@@ -37,7 +37,6 @@ fun program(args: Array<String>) {
     }
 
     println("$voterCount folk(s) voted!")
-    println("-------------------------------------")
 
     printResults(projectCsvWithResults)
 }
@@ -59,7 +58,12 @@ fun printResults(projectCsvColumn: Map<Int, HProjectVoteResult>) {
             .filter { it.points > 0 }
             .sortedWith(categoryAndMaxPointsComparator)
 
-    orderedResults.forEach { println(it) }
+    orderedResults
+            .groupBy { it.project.category }
+            .forEach { map: Map.Entry<String, List<HProjectVoteResult>> ->
+                println("-----------------------\nCategory: ${map.key}\n----")
+                map.value.forEach { println(it) }
+            }
 }
 
 
@@ -186,7 +190,7 @@ data class HProjectVoteResult(
         var votes: MutableList<Int> = arrayListOf<Int>()
 ) {
     override fun toString(): String {
-        return "[${project.category}] ${project.name} ----> ${points}    <- ${votes}"
+        return "${project.name.padEnd(50)} ----> ${points}    <- ${votes}"
     }
 }
 
