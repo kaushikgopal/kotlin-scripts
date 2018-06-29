@@ -41,12 +41,12 @@ println("******* PROGRAM END ***************** ")
 
 fun printResults(projectCsvColumn: Map<Int, HProjectVoteResult>) {
 
-    val c: Comparator<HProjectVoteResult> = compareBy<HProjectVoteResult> { it.project.category }
-    val ct = c.thenByDescending { it.points }
+    val categoryComparator: Comparator<HProjectVoteResult> = compareBy<HProjectVoteResult> { it.project.category }
+    val categoryAndMaxPointsComparator: Comparator<HProjectVoteResult> = categoryComparator.thenByDescending { it.points }
 
     val orderedResults = projectCsvColumn.values
             .filter { it.points > 0 }
-            .sortedWith(ct)
+            .sortedWith(categoryAndMaxPointsComparator)
 
     orderedResults.forEach { println(it) }
 }
@@ -68,7 +68,7 @@ fun processVote(
         tableOfResults: Map<Int, HProjectVoteResult>, vote: String
 ): Map<Int, HProjectVoteResult> {
 
-    val projectVoteResults:Map<Int, HProjectVoteResult> = tableOfResults
+    val projectVoteResults: Map<Int, HProjectVoteResult> = tableOfResults
     val splitVote: List<String> = vote.split(",")
     splitVote
             .drop(2) // not doing anything with the date
