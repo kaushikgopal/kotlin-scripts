@@ -46,3 +46,5 @@ See the accompanying blog post for more details.
   cd /directory/with/csv/file
   kscript /code/path/carrot-wars-tabulate.kts /carrot-wars-results.csv
 ```
+
+_Note: The first time you run the script it'll look like it's taking forever, thereafter the script runs super fast_.
