@@ -1,6 +1,4 @@
-# kotlin-scripts
-
-## setup
+# setup
 
 
 ```
@@ -8,31 +6,41 @@
 curl -s "https://get.sdkman.io" | bash  # install sdkman
 sdk install maven
 sdk install kotlin
-sdk install kscript
 
 // alternatively with homebrew
 brew install maven
-brew install holgerbrandl/tap/kscript
 ```
 
-Demos using kotlin as a scripting language
+# running the script
 
-## Running this with native kotlin compiler
+You can either use kscript or kotlinc native. I recommend the former. As it stands kscript does some caching which might make your program run a tad bit faster.
+
+
 
 ```
+// kscript 
+sdk install kscript
+// or `brew install holgerbrandl/tap/kscript` if you prefer homebrew
+
+kscript -script <my-kts-script>.kts
+
+
+// if you want to try kotlinc
 brew install kotlinc
 kotlinc -script list_folders.kts ~
 ```
 
-## Running this with kscript
+# Demos using kotlin as a scripting language
 
-As it stands kscript does some caching which might make the program run faster
+## simple shell script to `ls` your folder
 
 ```
 kscript -script list_folders.kts ~
 ```
 
-### Hackathon voting
+## Tabulate hackathon votes
+
+See the accompanying blog post for more details.
 
 ```
   cd /directory/with/csv/file
