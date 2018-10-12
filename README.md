@@ -40,7 +40,7 @@ kscript -script list_folders.kts ~
 
 ## Tabulate hackathon votes
 
-See the accompanying blog post for more details.
+See the [accompanying blog post](https://tech.instacart.com/free-hackathon-vote-tabulation-using-google-forms-kotlin-3c7b7080ea) for more details.
 
 ```
   cd /directory/with/csv/file
