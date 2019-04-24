@@ -17,6 +17,7 @@
 
     $> kscript --package 0-sample.kts
     $> ./0-sample --arg arg1 arg2
+    $> ./0-sample arg1 arg2
  *
  *
 */
