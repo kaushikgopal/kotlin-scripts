@@ -5,19 +5,63 @@
 @file:DependsOn("org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.2")
 
 import kotlinx.coroutines.*
+import kotlin.system.measureTimeMillis
 
-println("Start")
+fun main2() = runBlocking {
+    launch {
+        delay(200L)
+        println("---- A")
+    }
 
-// Start a coroutine
-GlobalScope.launch {
-    delay(1000)
-    println("Stop 1")
+    coroutineScope {
+        launch {
+            delay(500L)
+            println("---- B")
+        }
+
+        delay(100L)
+        println("---- C")
+    }
+
+    println("---- D")
 }
 
-CoroutineScope(Job()).launch {
-    delay(1000)
-    println("Stop 2")
+fun main3() = runBlocking {
+
+    launch {
+        repeat(100) {
+            print("$it ")
+            delay(150L)
+        }
+    }
+
+//    repeat(1_000) {
+//        launch {
+//            print(".")
+//            delay(100L)
+//        }
+//    }
+
 }
 
-println("Hello")
-Thread.sleep(2000)
+fun main() = runBlocking {
+    val time = measureTimeMillis {
+       val one = doOne()
+        val two = doTwo()
+        println("One and Two is ${one + two}")
+    }
+
+    println("finished in $time")
+}
+
+suspend fun doOne(): Int {
+    delay (500L)
+    return 13
+}
+
+suspend fun doTwo(): Int {
+    delay (1000L)
+    return 29
+}
+
+main()
