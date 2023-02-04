@@ -1,21 +1,24 @@
 #!/usr/bin/env kotlin
 
-@file:Repository("https://jitpack.io")
-@file:DependsOn("com.github.yschimke:okurl-script:2.1.0")
+@file:Repository("https://repo.maven.apache.org/maven2/")
+@file:DependsOn("com.squareup.okhttp3:okhttp:4.10.0")
+@file:DependsOn("com.squareup.okio:okio:3.0.0")
+@file:DependsOn("com.squareup.moshi:moshi:1.13.0")
+@file:DependsOn("com.squareup.moshi:moshi-adapters:1.13.0")
+@file:DependsOn("com.squareup.moshi:moshi-kotlin:1.13.0")
 
-import com.baulsupp.okscript.client
-import com.baulsupp.okscript.queryList
-import com.baulsupp.okscript.runScript
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import java.util.*
+import okhttp3.OkHttpClient
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
+import java.util.*
+import okhttp3.Request
 
-val jsonFeedUrl = "./feed.json".toPath()
+val jsonFeedFilePath = "./feed.json".toPath()
 
 /*
  * **********************
@@ -42,7 +45,7 @@ data class Feed(
 // download RSS feed file
 
 val jsonFile: String = FileSystem.SYSTEM
-    .source(jsonFeedUrl)
+    .source(jsonFeedFilePath)
     .buffer()
     .readUtf8()
 
@@ -51,8 +54,26 @@ val jsonParser: Moshi = Moshi.Builder()
     .add(Date::class.java, Rfc3339DateJsonAdapter())
     .build()
 
-val feed: Feed = jsonParser
+var feed: Feed = jsonParser
     .adapter(Feed::class.java)
     .fromJson(jsonFile) as Feed
 
-println("🤖 found ${feed.pages.count()} pages")
+println("🤖 local feed - ${feed.pages.count()} pages")
+
+
+// download RSS feed file
+val jsonFeedUrl = "https://kau.sh/index.json"
+
+val okhttpClient = OkHttpClient()
+val request = Request.Builder()
+    .url(jsonFeedUrl)
+    .build()
+
+okhttpClient.newCall(request).execute().use {response ->
+  feed = jsonParser
+      .adapter(Feed::class.java)
+      .fromJson(response.body!!.source()) as Feed
+}
+
+
+println("🤖 remote found ${feed.pages.count()} pages")
