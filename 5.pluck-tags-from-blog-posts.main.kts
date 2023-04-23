@@ -15,6 +15,11 @@
 
 import java.io.File
 
+
+println("******* PROGRAM START ***************** ")
+program(args)
+println("******* PROGRAM END ***************** ")
+
 fun program(args: Array<String>) {
 
   if (args.isEmpty()) {
@@ -55,13 +60,25 @@ fun program(args: Array<String>) {
       .distinct()
       .sorted()
 
-  // print the tags to the console on separate lines
-  tags.forEach { tag ->
-    println(tag)
-  }
+  justifiedPrint(tags)
 }
 
 
-println("******* PROGRAM START ***************** ")
-program(args)
-println("******* PROGRAM END ***************** ")
+/**
+ * This function takes a list of strings and
+ * prints them out in a justified format
+ */
+fun justifiedPrint(words: List<String>) {
+  val maxWordLength = words.maxBy { it.length }.length ?: 0
+  val maxWordsPerLine = 80 / (maxWordLength + 2)
+
+  var line = ""
+  words.forEach { word ->
+    if (line.length + word.length + 2 > 80) {
+      println(line)
+      line = ""
+    }
+    line += word.padEnd(maxWordLength + 2)
+  }
+  println(line)
+}
