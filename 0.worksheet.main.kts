@@ -1,3 +1,4 @@
+#!/usr/bin/env kotlin
 
 fun isEditDistance1(string1: String, string2: String): Boolean {
   return false
