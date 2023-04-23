@@ -1,3 +1,5 @@
+#!/usr/bin/env kotlin
+
 import java.io.File
 
 fun program(args : Array<String>) {
