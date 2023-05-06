@@ -12,7 +12,12 @@
     $>  ./0.hello.main.kts Hello 🌎
 */
 
-println("Hello from Kotlin!")
-for (arg in args) {
-    println("arg: $arg")
+println("Hello from Kotlin Scripts!")
+println("******* PROGRAM START ***************** ")
+program(args)
+println("******* PROGRAM END ***************** ")
+
+
+fun program(args: Array<String>) {
+    println("\uD83D\uDEE0️  This program received the following arguments: ${args.joinToString()} ")
 }
