@@ -28,9 +28,9 @@ fun program(args: Array<String>) {
   }
 
   // return if we can't find atleast one .md file
-  val files = File(args[0]).listFiles { file ->
-    file.isFile() && file.name.endsWith(".md")
-  } ?: kotlin.run {
+  // also check any subdirectories
+  val files = File(args[0]).walkTopDown().filter { file -> file.name.endsWith(".md") }.toList()
+  if (files.isEmpty()) {
     println(" ⚠️ ERROR: no markdown files found ")
     return
   }
