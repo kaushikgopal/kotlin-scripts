@@ -7,6 +7,25 @@ import okio.IOException
 import okio.Path
 import okio.Path.Companion.toPath
 
+/*
+ * This script shows you how you can read a csv file.
+ * run this script like so:
+
+    $>  brew install kotlin
+    $>  chmod +x 2.csv.main.kts
+    $>  ./2.csv.main.kts
+ */
+
+println("\uD83D\uDEE0️ ******  Reading from CSV File ****** \uD83D\uDEE0")
+
+val filePath = "star-wars-demo-results.csv".toPath()
+
+println(" --- Start of file --- 🏁")
+processLinesFromFile(filePath) { line ->
+  println(line)
+}
+println("--- End of file --- ✅")
+
 @Throws(IOException::class)
 fun processLinesFromFile(path: Path, lineAction: (String?) -> Unit) {
   FileSystem.SYSTEM.read(path) {
@@ -17,23 +36,14 @@ fun processLinesFromFile(path: Path, lineAction: (String?) -> Unit) {
   }
 }
 
-val filePath = "star-wars-demo-results.csv".toPath()
-
-println(" --- Start of file --- 🏁")
-processLinesFromFile(filePath) { line ->
-  println(line)
-}
-println("--- End of file --- ✅")
 
 
-data class Tooted(
-    val postId: String,
-    val tootId: String,
-)
+println("\uD83D\uDEE0️ ******  Writing from CSV File ****** \uD83D\uDEE0")
 
 val tootsFile = "./toots.csv".toPath()
 var tooted = mutableListOf<Tooted>()
 
+println(" --- Reading from existing CSV file ")
 FileSystem.SYSTEM.read(tootsFile) {
   while (true) {
     val line = readUtf8Line() ?: break
@@ -41,11 +51,9 @@ FileSystem.SYSTEM.read(tootsFile) {
     tooted.add(Tooted(path, tootId))
   }
 }
+println("existing CSV file has ${tooted.count()} toots/lines")
 
-println("🤖 tooted ${tooted.count()} times before")
-
-// write back into the file
-
+println("--- Writing back to the CSV file --- ✅")
 FileSystem.SYSTEM.write(tootsFile) {
   tooted.forEach { tooted ->
     writeUtf8(tooted.postId)
@@ -60,3 +68,8 @@ FileSystem.SYSTEM.write(tootsFile) {
     writeUtf8("\n")
   }
 }
+
+data class Tooted(
+  val postId: String,
+  val tootId: String,
+)
