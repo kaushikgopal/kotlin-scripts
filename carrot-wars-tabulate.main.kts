@@ -1,5 +1,8 @@
-#!/usr/bin/env kscript
-//DEPS com.github.holgerbrandl:kscript:1.2
+#!/usr/bin/env kotlin
+
+@file:Repository("https://repo.maven.apache.org/maven2/")
+@file:DependsOn("com.github.holgerbrandl:kscript:1.2")
+
 import java.io.File
 import kscript.text.*
 
@@ -8,6 +11,14 @@ import kscript.text.*
  * This is a program that'll tabulate the results for Instacart's 2018 Summer Hackathon
  *
  * Run the program against the Google Forms CSV result like so:
+ *
+ *
+ * See the [accompanying blog post](https://tech.instacart.com/free-hackathon-vote-tabulation-using-google-forms-kotlin-3c7b7080ea) for more details.
+ *
+ * ```
+ *   cd /directory/with/csv/file
+ *   kscript /code/path/carrot-wars-tabulate.kts /carrot-wars-results.csv
+ * ```
  *
  * `kscript ~/path/to/this/kts/script/carrot-wars-tabulate.kts ./hackathon-votes.csv`
  *  # to avoid path problems, run the command from the same directory as your CSV file
