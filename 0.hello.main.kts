@@ -1,6 +1,9 @@
 #!/usr/bin/env kotlin
 
 /*
+ * This script is a starter template script.
+ * It takes in whatever you send as arguments and prints them out.
+ *
  * run this script like so:
 
     $>  brew install kotlin
