@@ -1,80 +1,77 @@
 #!/usr/bin/env kotlin
 
-@file:Repository("https://repo.maven.apache.org/maven2/")
-@file:DependsOn("com.github.holgerbrandl:kscript:1.2")
+@file:DependsOn("com.squareup.okio:okio:3.3.0")
 
+import okio.FileSystem
+import okio.IOException
+import okio.Path
+import okio.Path.Companion.toPath
 import java.io.File
-import kscript.text.*
 
-/**
- *              ---------- Carrot Wars 2018 ---------------
- * This is a program that'll tabulate the results for Instacart's 2018 Summer Hackathon
- *
- * Run the program against the Google Forms CSV result like so:
- *
+/*
+ * ---------------- Carrot Wars 2018 -----------------------------------
+ * This script was used in Instacart's 2018 Summer Hackathon
+ *  it tabulates the results from a CSV file populated by Google Forms
+ *  and outputs the results of votes
  *
  * See the [accompanying blog post](https://tech.instacart.com/free-hackathon-vote-tabulation-using-google-forms-kotlin-3c7b7080ea) for more details.
  *
- * ```
- *   cd /directory/with/csv/file
- *   kscript /code/path/carrot-wars-tabulate.kts /carrot-wars-results.csv
- * ```
- *
- * `kscript ~/path/to/this/kts/script/carrot-wars-tabulate.kts ./hackathon-votes.csv`
- *  # to avoid path problems, run the command from the same directory as your CSV file
- *
- *
- * @param args - full path to CSV results file
- *
+ * run this script like so:
+
+    $>  brew install kotlin
+    $>  chmod +x 7.carrot-wars-tabulate.main.kts
+    $>  ./7.carrot-wars-tabulate.main.kts ./hackathon-votes.csv
  */
-fun program(args: Array<String>) {
 
-    if (args.isEmpty()) return
-
-    val lines: Sequence<String> = resolveArgFile(args)
-
-
-    var voterCount: Int = 0
-    var projectCsv: Map<Int, HProjectVoteResult> = emptyMap()
-    var projectCsvWithResults: Map<Int, HProjectVoteResult> = emptyMap()
-
-    lines.forEachIndexed { index, line ->
-        if (index == 0) {
-            projectCsv = processHeaderAndBuildMap(line)
-        } else {
-            projectCsvWithResults = processVote(projectCsv, line)
-            voterCount += 1
-        }
-    }
-
-    println("$voterCount folk(s) voted!")
-
-    printResults(projectCsvWithResults)
-}
 
 println("******* PROGRAM START ***************** ")
 program(args)
 println("******* PROGRAM END ***************** ")
 
+fun program(args: Array<String>) {
+  if (checkValidCsvFile(args)) return
 
+  var voterCount: Int = 0
+  var projectCsv: Map<Int, HProjectVoteResult> = emptyMap()
+  var projectCsvWithResults: Map<Int, HProjectVoteResult> = emptyMap()
+
+  val filePath = args[0].toPath()
+
+  processLinesFromFile(filePath) { line, index ->
+    line ?: return@processLinesFromFile
+
+    if (index == 0) {
+      projectCsv = processHeaderAndBuildMap(line)
+    } else {
+      projectCsvWithResults = processVote(projectCsv, line)
+      voterCount += 1
+    }
+  }
+
+  println("$voterCount folk(s) voted!")
+
+  printResults(projectCsvWithResults)
+}
 // ---------------------------------------------------------------------------------------------
 // Internal Helpers
 
 fun printResults(projectCsvColumn: Map<Int, HProjectVoteResult>) {
 
-    val categoryComparator: Comparator<HProjectVoteResult> = compareBy<HProjectVoteResult> { it.project.category }
-    val categoryAndMaxPointsComparator: Comparator<HProjectVoteResult> = categoryComparator.thenByDescending { it.points }
+  val categoryComparator: Comparator<HProjectVoteResult> =
+      compareBy<HProjectVoteResult> { it.project.category }
+  val categoryAndMaxPointsComparator: Comparator<HProjectVoteResult> =
+      categoryComparator.thenByDescending { it.points }
 
-    val orderedResults = projectCsvColumn.values
-            .filter { it.points > 0 }
-            .sortedWith(categoryAndMaxPointsComparator)
+  val orderedResults = projectCsvColumn.values
+      .filter { it.points > 0 }
+      .sortedWith(categoryAndMaxPointsComparator)
 
-    orderedResults
-            .groupBy { it.project.category }
-            .forEach { map: Map.Entry<String, List<HProjectVoteResult>> ->
-                println("-----------------------\nCategory: ${map.key}\n----")
-                map.value.forEach { println(it) }
-            }
+  orderedResults
+      .groupBy { it.project.category }
+      .forEach { map: Map.Entry<String, List<HProjectVoteResult>> ->
+        println("-----------------------\nCategory: ${map.key}\n----")
+        map.value.forEach { println(it) }
+      }
 }
 
 
@@ -91,35 +88,35 @@ fun printResults(projectCsvColumn: Map<Int, HProjectVoteResult>) {
  *   return a new map that has project info + summary of all points
  */
 fun processVote(
-        tableOfResults: Map<Int, HProjectVoteResult>, vote: String
+  tableOfResults: Map<Int, HProjectVoteResult>, vote: String
 ): Map<Int, HProjectVoteResult> {
 
-    val projectVoteResults: Map<Int, HProjectVoteResult> = tableOfResults
-    val splitVote: List<String> = vote.split(",")
-    splitVote
-            .drop(2) // not doing anything with the date
-            .forEachIndexed loop@{ index, voteResultColumn ->
+  val projectVoteResults: Map<Int, HProjectVoteResult> = tableOfResults
+  val splitVote: List<String> = vote.split(",")
+  splitVote
+      .drop(2) // not doing anything with the date
+      .forEachIndexed loop@{ index, voteResultColumn ->
 
-                val voteResultWithoutQuote = voteResultColumn.removeSurrounding("\"")
-                if (voteResultWithoutQuote.isBlank()) return@loop
-                val voteResult: Int = voteResultWithoutQuote.toInt()
+        val voteResultWithoutQuote = voteResultColumn.removeSurrounding("\"")
+        if (voteResultWithoutQuote.isBlank()) return@loop
+        val voteResult: Int = voteResultWithoutQuote.toInt()
 
-                val position = index + 2 // we dropped 2 indices
+        val position = index + 2 // we dropped 2 indices
 
-                val projectVoteResult: HProjectVoteResult = projectVoteResults[position]
-                        ?: return@loop
+        val projectVoteResult: HProjectVoteResult = projectVoteResults[position]
+          ?: return@loop
 
-                val project: HProject = projectVoteResult.project
-                val voter: String = splitVote[1].removeSurrounding("\"")
+        val project: HProject = projectVoteResult.project
+        val voter: String = splitVote[1].removeSurrounding("\"")
 
-                projectVoteResult.points += voteResult.voteWeight()
+        projectVoteResult.points += voteResult.voteWeight()
 
-                projectVoteResult.voters.add(voter)
-                projectVoteResult.votes.add(voteResult)
-                // println("project '${project.name}' was voted '$voteResult' [${voteResult.voteWeight()}] in category '${project.category}' by '$voter'")
-            }
+        projectVoteResult.voters.add(voter)
+        projectVoteResult.votes.add(voteResult)
+        // println("project '${project.name}' was voted '$voteResult' [${voteResult.voteWeight()}] in category '${project.category}' by '$voter'")
+      }
 
-    return projectVoteResults
+  return projectVoteResults
 }
 
 /**
@@ -137,46 +134,45 @@ fun processVote(
  *          value -> project vote result (basically project + category + current points standing)
  */
 fun processHeaderAndBuildMap(line: String): Map<Int, HProjectVoteResult> {
-    var results: MutableMap<Int, HProjectVoteResult> = mutableMapOf()
+  var results: MutableMap<Int, HProjectVoteResult> = mutableMapOf()
 
-    val splitHeader: List<String> = line.split(",")
+  val splitHeader: List<String> = line.split(",")
 
-    /*
-        println("---- Debugging Header processing")
-        splitHeader
-                .take(5)
-                .forEachIndexed { index, value ->
-                    println("column ${value} is at ${index}")
-                }
-    */
+  /*
+      println("---- Debugging Header processing")
+      splitHeader
+              .take(5)
+              .forEachIndexed { index, value ->
+                  println("column ${value} is at ${index}")
+              }
+  */
 
-    splitHeader
-            .drop(2) // we don't want the username & timestamp just yet; so ignore columns
-            .forEachIndexed { index, headerColumn ->
-                // println("column name ${headerColumn} at position ${index + 2}")
-                results[index + 2] = HProjectVoteResult(processProjectFromColumnHeader(headerColumn))
-                // println("processed $projectResult")
-            }
+  splitHeader
+      .drop(2) // we don't want the username & timestamp just yet; so ignore columns
+      .forEachIndexed { index, headerColumn ->
+        // println("column name ${headerColumn} at position ${index + 2}")
+        results[index + 2] = HProjectVoteResult(processProjectFromColumnHeader(headerColumn))
+        // println("processed $projectResult")
+      }
 
-    return results
+  return results
 }
 
 fun processProjectFromColumnHeader(headerColumn: String): HProject {
-    val projectCategory: String = headerColumn.split("[")[0].trim()
-    val projectName: String = headerColumn
-            ?.let {
-                it.substring(it.indexOf("[") + 1, it.indexOf("]")).trim()
-            }
-    return HProject(projectCategory, projectName)
+  val projectCategory: String = headerColumn.split("[")[0].trim()
+  val projectName: String = headerColumn.let {
+    it.substring(it.indexOf("[") + 1, it.indexOf("]")).trim()
+  }
+  return HProject(projectCategory, projectName)
 }
 
 fun Int.voteWeight(): Int {
-    return when (this) {
-        1 -> 6
-        2 -> 3
-        3 -> 2
-        else -> throw RuntimeException("there can be only 3")
-    }
+  return when (this) {
+    1 -> 6
+    2 -> 3
+    3 -> 2
+    else -> throw RuntimeException("there can be only 3")
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -187,22 +183,61 @@ fun Int.voteWeight(): Int {
  * Hackathon project
  */
 data class HProject(
-        val category: String,
-        val name: String
+  val category: String,
+  val name: String
 )
 
 /**
  * Hackathon project result row
  */
 data class HProjectVoteResult(
-        val project: HProject,
-        var points: Int = 0,
-        var voters: MutableList<String> = arrayListOf<String>(),
-        var votes: MutableList<Int> = arrayListOf<Int>()
+  val project: HProject,
+  var points: Int = 0,
+  var voters: MutableList<String> = arrayListOf<String>(),
+  var votes: MutableList<Int> = arrayListOf<Int>()
 ) {
-    override fun toString(): String {
-        return "${project.name.padEnd(50)} ----> ${points}    <- ${votes}"
-    }
+  override fun toString(): String {
+    return "${project.name.padEnd(50)} ----> ${points}    <- ${votes}"
+  }
 }
 
+fun checkValidCsvFile(args: Array<String>): Boolean {
+  if (args.isEmpty()) {
+    println("⚠️  We need a csv file to proceed!")
+    return true
+  }
 
+  // make sure one argument provided and it is a csv file
+  val file = File(args[0])
+
+  if (!file.exists()) {
+    println("⚠️  File ${file.absolutePath} does not exist!")
+    return true
+  }
+
+  if (!file.isFile) {
+    println("⚠️  File ${file.absolutePath} is not a file!")
+    return true
+  }
+  if (!file.canRead()) {
+    println("⚠️  File ${file.absolutePath} is not readable!")
+    return true
+  }
+  if (!file.extension.equals("csv", ignoreCase = true)) {
+    println("⚠️  File ${file.absolutePath} is not a CSV file!")
+    return true
+  }
+  return false
+}
+
+@Throws(IOException::class)
+fun processLinesFromFile(path: Path, lineAction: (String?, Int) -> Unit) {
+  FileSystem.SYSTEM.read(path) {
+    var lineCount = 0
+    while (true) {
+      val line = readUtf8Line() ?: break
+      lineAction.invoke(line, lineCount)
+      lineCount += 1
+    }
+  }
+}
