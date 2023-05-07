@@ -11,6 +11,10 @@
     $>  brew install kotlin
     $>  kotlin 5.pluck-tags-from-blog-posts.main.kts ~/kau.sh/content/blog tags
     $>  kotlin 5.pluck-tags-from-blog-posts.main.kts ~/kau.sh/content/blog categories
+ *
+ * I live coded another version of this script using Github Copilot:
+ *  You can read more [about it here](https://kau.sh/kscript-copilot/)
+ *  or watch the [youtube video here](https://www.youtube.com/watch?v=Tr2YBmecdw4)
 */
 
 import java.io.File
