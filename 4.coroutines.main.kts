@@ -7,7 +7,37 @@
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.*
 
+
+/*
+ * This script shows you how you can use coroutines to do async programming
+ *
+ * run this script like so:
+
+    $>  brew install kotlin
+    $>  chmod +x 4.coroutines.main.kts
+    $>  ./4.coroutines.main.kts
+ */
+
+println("------ first program ")
+println("------   two coroutines run in series")
+main()
+fun main() = runBlocking {
+  val time = measureTimeMillis {
+    val one = doOne()
+    val two = doTwo()
+    println("One and Two is ${one + two}")
+  }
+
+  println("finished in $time")
+}
+
+
+
+println("------ second program ")
+println("------   multiple coroutines non-waiting")
+main2()
 fun main2() = runBlocking {
+
   launch {
     delay(200L)
     println("---- A")
@@ -26,34 +56,32 @@ fun main2() = runBlocking {
   println("---- D")
 }
 
+
+
+println("\n\n\n\n------ next program ")
+println("------   100s of coroutines")
+main3()
 fun main3() = runBlocking {
 
+  // these will "wait" on the next one
   launch {
-    repeat(100) {
+    println("\n\n")
+
+    repeat(1_00) {
       print("$it ")
       delay(150L)
     }
-
-    println("")
   }
 
-//    repeat(1_000) {
-//        launch {
-//            print(".")
-//            delay(100L)
-//        }
-//    }
-
-}
-
-fun main() = runBlocking {
-  val time = measureTimeMillis {
-    val one = doOne()
-    val two = doTwo()
-    println("One and Two is ${one + two}")
+  // these will all run in "parallel"
+  repeat(1_00) {
+      println("\n\n")
+      launch {
+          delay(100L)
+          print("-${it}-")
+      }
   }
 
-  println("finished in $time")
 }
 
 suspend fun doOne(): Int {
@@ -65,10 +93,3 @@ suspend fun doTwo(): Int {
   delay(1000L)
   return 29
 }
-
-main()
-println("------ next program ")
-main2()
-println("------ next program ")
-main3()
-println("------ next program ")
