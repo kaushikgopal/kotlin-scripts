@@ -18,32 +18,27 @@ import okio.buffer
 import java.util.*
 import okhttp3.Request
 
-val jsonFeedFilePath = "./feed.json".toPath()
-
 /*
- * **********************
- * Load blog feed json
- * **********************
+ * This script shows you how you can read a json file
+ *  then parse it into a Kotlin data classes.
+ *  It also shows you how to download a json file from the web
+ *
+ * run this script like so:
+
+    $>  brew install kotlin
+    $>  chmod +x 3.json.main.kts
+    $>  ./3.json.main.kts
  */
 
-data class Page(
-    val title: String,
-    @Json(name = "date_published")
-    val publishedDate: Date,
-    @Json(name = "file_path")
-    val filePath: String,
-    val description: String?,
-)
 
-data class Feed(
-    val title: String,
-    val description: String,
-    @Json(name = "items")
-    val pages: List<Page>
-)
+/*
+ * ****************************
+ * Read from local json file
+ * ****************************
+ */
+val jsonFeedFilePath = "./feed.json".toPath()
 
-// download RSS feed file
-
+println("\uD83D\uDEE0️ ******  Load json file from \uD83D\uDCBE ****** \uD83D\uDEE0")
 val jsonFile: String = FileSystem.SYSTEM
     .source(jsonFeedFilePath)
     .buffer()
@@ -58,11 +53,16 @@ var feed: Feed = jsonParser
     .adapter(Feed::class.java)
     .fromJson(jsonFile) as Feed
 
-println("🤖 local feed - ${feed.pages.count()} pages")
+println("🤖 local feed has ${feed.pages.count()} pages")
 
-
-// download RSS feed file
+/*
+ * ****************************
+ * Download RSS json file
+ * ****************************
+ */
 val jsonFeedUrl = "https://kau.sh/index.json"
+
+println("\uD83D\uDEE0️ ******  Download blog feed json file from \uD83C\uDF0D ****** \uD83D\uDEE0")
 
 val okhttpClient = OkHttpClient()
 val request = Request.Builder()
@@ -75,5 +75,21 @@ okhttpClient.newCall(request).execute().use {response ->
       .fromJson(response.body!!.source()) as Feed
 }
 
-
 println("🤖 remote found ${feed.pages.count()} pages")
+
+data class Page(
+  val title: String,
+  @Json(name = "date_published")
+  val publishedDate: Date,
+  @Json(name = "file_path")
+  val filePath: String?,
+  val description: String?,
+)
+
+data class Feed(
+  val title: String,
+  val description: String,
+  @Json(name = "items")
+  val pages: List<Page>
+)
+
