@@ -39,18 +39,35 @@ fun program(args: Array<String>) {
     return
   }
 
-  println(" ℹ️ found ${files.size} markdown files to process")
+  println(" ℹ️  found ${files.size} markdown files to process")
 
-  // return if second argument is not either tags or categories
-  if (args.size < 2 || (args[1] != "tags" && args[1] != "categories")) {
-    println(" ⚠️ ERROR: second argument must be either 'tags' or 'categories' ")
+  // return if second argument is not present
+  if (args.size < 2) {
+    println(" ⚠️ ERROR: second argument is required")
     return
   }
 
-  val tagOrCategorySearch = args[1]
+  val items: List<String> = when (args[1]) {
+    "tags", "categories" -> {
+      collectTagsOrCategories(files, args[1])
+    }
 
+    "duplicates", "duplicate" -> {
+      findDuplicates(files)
+    }
+
+    else -> {
+      println(" ⚠️ ERROR: second argument must be either 'tags', 'categories' or 'duplicate(s)'")
+      return
+    }
+  }
+
+  justifiedPrint(items)
+}
+
+fun collectTagsOrCategories(files: List<File>, tagOrCategorySearch: String): List<String> {
   // read every line of file and pluck the line that has "tags: [" in it
-  val tags = files
+  return files
       .map { file ->
         file.readLines()
             .filter { it.contains("${tagOrCategorySearch}: [") }
@@ -63,16 +80,26 @@ fun program(args: Array<String>) {
       .flatten()
       .distinct()
       .sorted()
-
-  justifiedPrint(tags)
 }
 
+// This function collects all categories and tags from all files
+// then prints out the words that are both categories and tags
+fun findDuplicates(files: List<File>): List<String> {
+  val tags = collectTagsOrCategories(files, "tags")
+  val categories = collectTagsOrCategories(files, "categories")
+  return tags.filter { categories.contains(it) }
+}
 
 /**
  * This function takes a list of strings and
  * prints them out in a justified format
  */
 fun justifiedPrint(words: List<String>) {
+  if(words.isEmpty()) {
+    println(" \uD83E\uDEB9️ nothing to print")
+    return
+  }
+
   val maxWordLength = words.maxBy { it.length }.length ?: 0
   val maxWordsPerLine = 80 / (maxWordLength + 2)
 
