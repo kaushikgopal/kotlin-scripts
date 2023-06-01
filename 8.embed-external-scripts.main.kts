@@ -1,6 +1,6 @@
 #!/usr/bin/env kotlin
 
-@file:Import("./myClassObject.kts")
+@file:Import("common.main.kts")
 
 import java.io.File
 
@@ -21,9 +21,8 @@ println("******* PROGRAM START ***************** ")
 program(args)
 println("******* PROGRAM END ***************** ")
 
-
-
 fun program(args : Array<String>) {
     val person = Person(name = "Albert Einstein", age = 76)
     println("printing from class MyClassObject - ${person.name} is ${person.age} years old")
 }
+
