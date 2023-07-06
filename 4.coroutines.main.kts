@@ -18,10 +18,11 @@ import kotlinx.coroutines.*
     $>  ./4.coroutines.main.kts
  */
 
-println("------ first program ")
-println("------   two coroutines run in series")
-main()
+//main()
 fun main() = runBlocking {
+  println("------ first program ")
+  println("------   two coroutines run in series")
+
   val time = measureTimeMillis {
     val one = doOne()
     val two = doTwo()
@@ -33,10 +34,10 @@ fun main() = runBlocking {
 
 
 
-println("------ second program ")
-println("------   multiple coroutines non-waiting")
-main2()
+//main2()
 fun main2() = runBlocking {
+  println("------ second program ")
+  println("------   multiple coroutines non-waiting")
 
   launch {
     delay(200L)
@@ -58,10 +59,10 @@ fun main2() = runBlocking {
 
 
 
-println("\n\n\n\n------ next program ")
-println("------   100s of coroutines")
-main3()
+//main3()
 fun main3() = runBlocking {
+  println("\n\n\n\n------ next program ")
+  println("------   100s of coroutines")
 
   // these will "wait" on the next one
   launch {
@@ -92,4 +93,36 @@ suspend fun doOne(): Int {
 suspend fun doTwo(): Int {
   delay(1000L)
   return 29
+}
+
+
+
+main4()
+
+fun main4() = runBlocking {
+  println("\n\n\n\n------ next program ")
+  println("------   coroutines sequencing")
+
+  launch {
+    println("This is executed before the first delay <1> [${Thread.currentThread().name}]")
+    println("This is executed before the first delay <2> [${Thread.currentThread().name}]")
+    stallForTime()
+    println("This is executed after the first delay [${Thread.currentThread().name}]")
+  }
+
+  launch {
+    println("This is executed before the second delay [${Thread.currentThread().name}]")
+    stallForTime()
+    println("This is executed after the second delay [${Thread.currentThread().name}]")
+  }
+
+  println("This is executed immediately [${Thread.currentThread().name}]")
+}
+
+suspend fun stallForTime() {
+  println("before delay [${Thread.currentThread().name}]")
+//  withContext(Dispatchers.IO) {
+//    println("delaying on [${Thread.currentThread().name}]")
+    delay(4000L)
+//  }
 }
