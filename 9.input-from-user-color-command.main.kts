@@ -55,7 +55,7 @@ fun main(args: Array<String>) {
   println("Opening all the social profiles now! ")
 
   // execute a shell command
-  "open https://x.$domain".exec()
+  "open https://threads.$domain".exec()
   "open https://github.$domain".exec()
   "open https://twitter.$domain".exec()
   "open https://mastodon.$domain".exec()
