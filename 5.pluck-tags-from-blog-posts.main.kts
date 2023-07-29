@@ -28,6 +28,10 @@ fun program(args: Array<String>) {
 
   if (args.isEmpty()) {
     println(" ⚠️ ERROR: a path is required ")
+    println(" You need to provide two arguments to this script")
+    println(" 1. path")
+    println(" 2. tags, categories or duplicates")
+    println("  duplicates will print out tags that are also categories")
     return
   }
 
