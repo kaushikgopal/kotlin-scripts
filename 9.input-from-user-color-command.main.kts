@@ -55,11 +55,13 @@ fun main(args: Array<String>) {
   println("Opening all the social profiles now! ")
 
   // execute a shell command
-  "open https://threads.$domain".exec()
-  "open https://github.$domain".exec()
-  "open https://twitter.$domain".exec()
-  "open https://mastodon.$domain".exec()
-  "open https://instagram.$domain".exec()
+  listOf(
+      "open https://threads.$domain",
+      "open https://github.$domain",
+      "open https://twitter.$domain",
+      "open https://mastodon.$domain",
+      "open https://instagram.$domain"
+  ).forEach { it.exec() }
 }
 
 fun String.exec() {
