@@ -122,6 +122,9 @@ $RECYCLE.BIN/
 # Intellij Project Name
 !.idea/.name
 
+# contains compiler special arguments (like -Xallow-any-scripts-in-source-roots) for kotlin 1.9
+!.idea/kotlinc.xml
+
 ##############################################################################
 ### Gradle template
 
