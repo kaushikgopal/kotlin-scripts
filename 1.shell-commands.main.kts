@@ -1,9 +1,7 @@
 #!/usr/bin/env kotlin
-@file:DependsOn("com.squareup.okio:okio:3.5.0")
-
-import okio.buffer
-import okio.source
+import java.io.BufferedReader
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 /*
  * This script <does something useful>
@@ -40,10 +38,10 @@ fun program(args: Array<String>) {
   if (DEBUG) println("$ANSI_GRAY[args]$ANSI_GREEN${args.joinToString()}$ANSI_RESET")
 
   // notice use of unix shell commands
-  "find scratch.txt".exec()
-  "rm -rf scratch.txt".exec()
-  "find scratch.txt".exec()
-  "touch scratch.txt".exec()
+  "find scratch.txt".exec(exitOnError = false)
+  "rm -rf scratch.txt".exec(exitOnError = false)
+  "find scratch.txt".exec(exitOnError = false)
+  "touch scratch.txt".exec(exitOnError = false)
 
   // find all files ending with ".main.kts"
   // in this directory recursively
@@ -52,10 +50,6 @@ fun program(args: Array<String>) {
   val fileList =
       "find . -type f -path '*.main.kts'"
           .exec()
-          .inputStream
-          .source()
-          .buffer()
-          .readUtf8()
           .split("\n")
           .filter { it.isNotBlank() }
 
@@ -66,10 +60,42 @@ fun program(args: Array<String>) {
 
 }
 
-fun String.exec(): Process {
+fun String.exec(
+  exitOnError: Boolean = false,
+): String {
   if (DEBUG) println("$ANSI_GRAY[command] $this $ANSI_RESET")
-  val process = ProcessBuilder("/bin/bash", "-c", this).redirectErrorStream(true).start()
-  val output = process.waitFor(3, TimeUnit.SECONDS)
-  // if (DEBUG) println("$ANSI_GRAY *** [command] $output $ANSI_RESET")
-  return process
+  val process =
+      ProcessBuilder()
+          // .directory(workingDirectory)
+          .redirectErrorStream(true)
+          .redirectOutput(ProcessBuilder.Redirect.PIPE)
+          .redirectError(ProcessBuilder.Redirect.PIPE)
+          // the /bin/bash -c -l is necessary if you use programs like "find" etc.
+          .command("/bin/bash", "-c", "-l", this)
+          .start()
+  process.waitFor(3, TimeUnit.MINUTES)
+  return process.retrieveOutput(exitOnError)
+}
+
+private fun Process.retrieveOutput(exitOnError: Boolean): String {
+  val outputText = inputStream.bufferedReader().use(BufferedReader::readText)
+  val exitCode = exitValue()
+  if (exitCode != 0) {
+    val errorText = errorStream.bufferedReader().use(BufferedReader::readText)
+    println(
+        """$ANSI_RED
+✗ err: $exitCode
+✗ output:
+----------
+${outputText.trim()}
+$ANSI_RED✗ error:
+----------
+${errorText.trim()}$ANSI_RESET"""
+    )
+    if (exitOnError) {
+      println("$ANSI_RED ✗ Exiting... $ANSI_RESET")
+      exitProcess(1)
+    }
+  }
+  return outputText.trim()
 }
