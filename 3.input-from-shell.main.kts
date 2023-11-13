@@ -1,8 +1,14 @@
 #!/usr/bin/env kotlin
 
-@file:Import("shell.util.main.kts")
+@file:Repository("https://jitpack.io")
+@file:DependsOn("com.github.kaushikgopal:shell.main.kts:276950a346")
 
-import java.util.concurrent.TimeUnit
+import sh.kau.shell.ShellConsole.Companion.ANSI_GRAY
+import sh.kau.shell.ShellConsole.Companion.ANSI_GREEN
+import sh.kau.shell.ShellConsole.Companion.ANSI_PURPLE
+import sh.kau.shell.ShellConsole.Companion.ANSI_RESET
+import sh.kau.shell.ShellConsole.Companion.ANSI_YELLOW
+import sh.kau.shell.runInShell
 
 /*
  * This script demonstrates how you can take inputs from the user
@@ -23,16 +29,6 @@ import java.util.concurrent.TimeUnit
  *
  * Read more about this at https://kau.sh/blog/kscript
 */
-
-val ANSI_RESET = "\u001B[0m"
-val ANSI_GRAY = "\u001B[90m" // use this mostly
-val ANSI_PURPLE = "\u001B[35m" // input commands
-val ANSI_GREEN = "\u001B[32m" // highlighting values
-val ANSI_RED = "\u001B[31m" // error
-val ANSI_YELLOW = "\u001B[33m" // important messages
-// val ANSI_BLUE = "\u001B[34m"
-// val ANSI_CYAN = "\u001B[36m"
-// val ANSI_WHITE = "\u001B[37m"
 
 println("$ANSI_GRAY ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯  PROGRAM START$ANSI_RESET")
 program(args)
@@ -72,5 +68,5 @@ fun program(args: Array<String>) {
       "open https://twitter.$domain",
       "open https://mastodon.$domain",
       "open https://instagram.$domain"
-  ).forEach { it.exec() }
+  ).forEach { it.runInShell() }
 }
