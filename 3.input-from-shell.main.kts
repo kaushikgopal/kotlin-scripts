@@ -1,5 +1,7 @@
 #!/usr/bin/env kotlin
 
+@file:Import("shell.util.main.kts")
+
 import java.util.concurrent.TimeUnit
 
 /*
@@ -71,12 +73,4 @@ fun program(args: Array<String>) {
       "open https://mastodon.$domain",
       "open https://instagram.$domain"
   ).forEach { it.exec() }
-}
-
-fun String.exec(): Process {
-  println("$ANSI_GRAY[command] $this $ANSI_RESET")
-  val process = ProcessBuilder("/bin/bash", "-c", this).redirectErrorStream(true).start()
-  val output = process.waitFor(3, TimeUnit.SECONDS)
-  // if (DEBUG) println("$ANSI_GRAY *** [command] $output $ANSI_RESET")
-  return process
 }
