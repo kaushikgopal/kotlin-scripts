@@ -38,10 +38,10 @@ fun program(args: Array<String>) {
   if (DEBUG) println("$ANSI_GRAY[args]$ANSI_GREEN${args.joinToString()}$ANSI_RESET")
 
   // notice use of unix shell commands
-  "find scratch.txt".exec(exitOnError = false)
-  "rm -rf scratch.txt".exec(exitOnError = false)
-  "find scratch.txt".exec(exitOnError = false)
-  "touch scratch.txt".exec(exitOnError = false)
+  "find scratch.txt".exec()
+  "rm -rf scratch.txt".exec()
+  "find scratch.txt".exec()
+  "touch scratch.txt".exec()
 
   // find all files ending with ".main.kts"
   // in this directory recursively
@@ -60,42 +60,60 @@ fun program(args: Array<String>) {
 
 }
 
+
 fun String.exec(
   exitOnError: Boolean = false,
+  verbose: Boolean = true,
+  timeoutInMinutes: Long = 3,
 ): String {
-  if (DEBUG) println("$ANSI_GRAY[command] $this $ANSI_RESET")
+  if (verbose) println("${ANSI_GRAY}[command] $this ${ANSI_RESET}")
   val process =
       ProcessBuilder()
           // .directory(workingDirectory)
           .redirectErrorStream(true)
           .redirectOutput(ProcessBuilder.Redirect.PIPE)
           .redirectError(ProcessBuilder.Redirect.PIPE)
-          // the /bin/bash -c -l is necessary if you use programs like "find" etc.
+          // /bin/bash -c -l necessary to use programs like "find"
+          // from your real user shell environment
           .command("/bin/bash", "-c", "-l", this)
           .start()
-  process.waitFor(3, TimeUnit.MINUTES)
-  return process.retrieveOutput(exitOnError)
+
+  process.waitFor(timeoutInMinutes, TimeUnit.MINUTES)
+  return process.retrieveOutput(exitOnError, verbose)
 }
 
-private fun Process.retrieveOutput(exitOnError: Boolean): String {
+private fun Process.retrieveOutput(exitOnError: Boolean, verbose: Boolean): String {
   val outputText = inputStream.bufferedReader().use(BufferedReader::readText)
   val exitCode = exitValue()
-  if (exitCode != 0) {
-    val errorText = errorStream.bufferedReader().use(BufferedReader::readText)
-    println(
-        """$ANSI_RED
-✗ err: $exitCode
-✗ output:
-----------
-${outputText.trim()}
-$ANSI_RED✗ error:
-----------
-${errorText.trim()}$ANSI_RESET"""
-    )
-    if (exitOnError) {
-      println("$ANSI_RED ✗ Exiting... $ANSI_RESET")
-      exitProcess(1)
+
+  val color: String
+  val sign: String
+  when {
+    exitOnError -> {
+      color = ANSI_RED
+      sign = "✗ | err: $exitCode"
     }
+    exitCode != 0 -> {
+      color = ANSI_YELLOW
+      sign = "⚠️  | err: $exitCode"
+    }
+    else -> {
+      color = ANSI_GRAY
+      sign = ""
+    }
+  }
+
+  if (verbose || exitCode != 0) {
+    println(
+        """$color[output] $sign:
+${outputText.trim()}
+$ANSI_RESET""",
+    )
+  }
+
+  if (exitOnError) {
+    println("${ANSI_RED}✗ Exiting... $ANSI_RESET")
+    exitProcess(1)
   }
   return outputText.trim()
 }
