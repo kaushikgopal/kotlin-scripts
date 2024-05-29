@@ -1,4 +1,5 @@
 #!/usr/bin/env kotlin
+
 @file:Repository("https://repo.maven.apache.org/maven2/")
 @file:DependsOn("com.squareup.okhttp3:okhttp:4.10.0")
 @file:DependsOn("com.squareup.okio:okio:3.0.0")
@@ -37,9 +38,9 @@ println("$ANSI_GRAY----$ANSI_RESET")
 
 fun program(args: Array<String>) {
   if (DEBUG) println("$ANSI_GRAY[args]$ANSI_GREEN${args.joinToString()}$ANSI_RESET")
-  getProjects()
+  val gitlabProjects = getProjects()
+  gitlabProjects
       .forEach { println("$ANSI_GRAY Project Name: $ANSI_PURPLE${it.name}$ANSI_GRAY , Project ID: $ANSI_GREEN${it.id}$ANSI_RESET") }
-
 }
 
 private fun getProjects(): List<GitlabProject> {
