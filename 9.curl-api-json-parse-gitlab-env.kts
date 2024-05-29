@@ -37,10 +37,9 @@ println("$ANSI_GRAY----$ANSI_RESET")
 
 fun program(args: Array<String>) {
   if (DEBUG) println("$ANSI_GRAY[args]$ANSI_GREEN${args.joinToString()}$ANSI_RESET")
-  val gitlabProjects = getProjects()
-  gitlabProjects.forEach {
-    println("$ANSI_GRAY Project Name: $ANSI_PURPLE${it.name}$ANSI_GRAY , Project ID: $ANSI_GREEN${it.id}$ANSI_RESET")
-  }
+  getProjects()
+      .forEach { println("$ANSI_GRAY Project Name: $ANSI_PURPLE${it.name}$ANSI_GRAY , Project ID: $ANSI_GREEN${it.id}$ANSI_RESET") }
+
 }
 
 private fun getProjects(): List<GitlabProject> {
@@ -63,20 +62,19 @@ private fun getProjects(): List<GitlabProject> {
   val tempFile = File.createTempFile("response", ".json")
 
   val projects = try {
-    // Start the process
+
     val process =
         ProcessBuilder(command).redirectOutput(ProcessBuilder.Redirect.to(tempFile)).start()
-
-    // Wait for the process to end
     process.waitFor()
 
-    // Read the output using Okio
+    // Read the output
     val source = tempFile.source().buffer()
     val jsonOutput = source.readUtf8()
     source.close()
 
     // Parse JSON to Kotlin object
     adapter.fromJson(jsonOutput) ?: emptyList()
+
   } catch (e: IOException) {
     e.printStackTrace()
     emptyList()
