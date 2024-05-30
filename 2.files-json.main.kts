@@ -2,10 +2,10 @@
 
 @file:Repository("https://repo.maven.apache.org/maven2/")
 @file:DependsOn("com.squareup.okhttp3:okhttp:4.10.0")
-@file:DependsOn("com.squareup.okio:okio:3.0.0")
-@file:DependsOn("com.squareup.moshi:moshi:1.13.0")
-@file:DependsOn("com.squareup.moshi:moshi-adapters:1.13.0")
-@file:DependsOn("com.squareup.moshi:moshi-kotlin:1.13.0")
+@file:DependsOn("com.squareup.okio:okio:3.9.0")
+@file:DependsOn("com.squareup.moshi:moshi:1.15.1")
+@file:DependsOn("com.squareup.moshi:moshi-adapters:1.15.1")
+@file:DependsOn("com.squareup.moshi:moshi-kotlin:1.15.1")
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
@@ -60,20 +60,22 @@ println("🤖 local feed has ${feed.pages.count()} pages")
  * Download RSS json file
  * ****************************
  */
-val jsonFeedUrl = "https://kau.sh/index.json"
+val jsonFeedUrl = "https://kau.sh/blog/feed.json"
 
 println("\uD83D\uDEE0️ ******  Download blog feed json file from \uD83C\uDF0D ****** \uD83D\uDEE0")
 
-val okhttpClient = OkHttpClient()
-val request = Request.Builder()
-    .url(jsonFeedUrl)
-    .build()
-
-okhttpClient.newCall(request).execute().use {response ->
-  feed = moshi
-      .adapter(Feed::class.java)
-      .fromJson(response.body!!.source()) as Feed
-}
+OkHttpClient()
+    .newCall(
+            Request.Builder()
+                    .url(jsonFeedUrl)
+                    .build(),
+    )
+    .execute()
+    .use { response ->
+      feed = moshi
+          .adapter(Feed::class.java)
+          .fromJson(response.body!!.source()) as Feed
+    }
 
 println("🤖 remote found ${feed.pages.count()} pages")
 
