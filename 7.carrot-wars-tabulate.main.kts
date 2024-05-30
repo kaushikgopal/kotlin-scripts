@@ -19,8 +19,7 @@ import java.io.File
  * run this script like so:
 
     $>  brew install kotlin
-    $>  chmod +x 7.carrot-wars-tabulate.main.kts
-    $>  ./7.carrot-wars-tabulate.main.kts ./hackathon-votes.csv
+    $>  kotlin 7.carrot-wars-tabulate.main.kts star-wars-demo-results.csv
  */
 
 
