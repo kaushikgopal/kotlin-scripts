@@ -3,14 +3,14 @@
 @file:Repository("https://repo.maven.apache.org/maven2/")
 @file:DependsOn("com.squareup.okhttp3:okhttp:4.10.0")
 @file:DependsOn("com.squareup.okio:okio:3.9.0")
-@file:DependsOn("com.squareup.moshi:moshi:1.15.1")
-@file:DependsOn("com.squareup.moshi:moshi-adapters:1.15.1")
 @file:DependsOn("com.squareup.moshi:moshi-kotlin:1.15.1")
+@file:DependsOn("com.squareup.moshi:moshi-adapters:1.13.0")
+@file:DependsOn("dev.zacsweers.moshix:moshi-metadata-reflect:0.27.1")
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import dev.zacsweers.moshix.reflect.MetadataKotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -45,7 +45,7 @@ val jsonFile: String = FileSystem.SYSTEM
     .readUtf8()
 
 val moshi: Moshi = Moshi.Builder()
-    .add(KotlinJsonAdapterFactory())
+    .add(MetadataKotlinJsonAdapterFactory())
     .add(Date::class.java, Rfc3339DateJsonAdapter())
     .build()
 
