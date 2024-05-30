@@ -44,12 +44,12 @@ val jsonFile: String = FileSystem.SYSTEM
     .buffer()
     .readUtf8()
 
-val jsonParser: Moshi = Moshi.Builder()
+val moshi: Moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
     .add(Date::class.java, Rfc3339DateJsonAdapter())
     .build()
 
-var feed: Feed = jsonParser
+var feed: Feed = moshi
     .adapter(Feed::class.java)
     .fromJson(jsonFile) as Feed
 
@@ -70,7 +70,7 @@ val request = Request.Builder()
     .build()
 
 okhttpClient.newCall(request).execute().use {response ->
-  feed = jsonParser
+  feed = moshi
       .adapter(Feed::class.java)
       .fromJson(response.body!!.source()) as Feed
 }
