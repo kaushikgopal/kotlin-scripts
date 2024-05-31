@@ -1,20 +1,20 @@
 #!/usr/bin/env kotlin
 
-@file:Repository("https://repo.maven.apache.org/maven2/")
-@file:DependsOn("com.squareup.okhttp3:okhttp:4.10.0")
-@file:DependsOn("com.squareup.okio:okio:3.9.0")
-@file:DependsOn("com.squareup.moshi:moshi-kotlin:1.15.1")
-@file:DependsOn("com.squareup.moshi:moshi-adapters:1.13.0")
-@file:DependsOn("dev.zacsweers.moshix:moshi-metadata-reflect:0.27.1")
+@file:Repository("https://repo.maven.apache.org/maven2/") @file:DependsOn("com.squareup.okhttp3:okhttp:4.10.0") @file:DependsOn(
+    "com.squareup.okio:okio:3.9.0",
+) @file:DependsOn("com.squareup.moshi:moshi-kotlin:1.15.1") @file:DependsOn("com.squareup.moshi:moshi-adapters:1.13.0") @file:DependsOn(
+    "dev.zacsweers.moshix:moshi-metadata-reflect:0.27.1",
+)
 
-@file:Repository("https://jitpack.io")
-@file:DependsOn("com.github.kaushikgopal:shell.main.kts:276950a346")
+@file:Repository("https://jitpack.io") @file:DependsOn("com.github.kaushikgopal:shell.main.kts:276950a346")
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
 import dev.zacsweers.moshix.reflect.MetadataKotlinJsonAdapterFactory
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okio.buffer
 import java.util.*
 import okio.source
@@ -32,15 +32,13 @@ val ANSI_YELLOW = "\u001B[33m" // important messages
 //val ANSI_WHITE = "\u001B[37m"
 
 val DEBUG = true
+val gitlabApiToken =
+    System.getenv("GITLAB_API_TOKEN") ?: throw IllegalStateException("PRIVATE_TOKEN must be set")
 
-val gitlabApiToken = System.getenv("GITLAB_API_TOKEN")
-  ?: throw IllegalStateException("PRIVATE_TOKEN must be set")
+val moshi: Moshi = Moshi.Builder().add(MetadataKotlinJsonAdapterFactory())
+    .add(Date::class.java, Rfc3339DateJsonAdapter()).build()
 
-val moshi: Moshi = Moshi.Builder()
-    .add(MetadataKotlinJsonAdapterFactory())
-    .add(Date::class.java, Rfc3339DateJsonAdapter())
-    .build()
-
+val client = OkHttpClient()
 
 println("$ANSI_GRAY----$ANSI_RESET")
 program(args)
@@ -49,8 +47,7 @@ println("$ANSI_GRAY----$ANSI_RESET")
 fun program(args: Array<String>) {
   if (DEBUG) println("$ANSI_GRAY[args]$ANSI_GREEN${args.joinToString()}$ANSI_RESET")
 
-  getProjects()
-      .forEach { project ->
+  getProjects().forEach { project ->
         println(
             """
 $ANSI_GRAY[${project.id}]$ANSI_GREEN ${project.name}
@@ -58,8 +55,7 @@ $ANSI_GRAY[${project.id}]$ANSI_GREEN ${project.name}
         )
       }
 
-  getMergeRequests()
-      .forEach { mr ->
+  getMergeRequests().forEach { mr ->
         println(
             """
 $ANSI_GRAY[$ANSI_YELLOW${mr.id}$ANSI_GRAY]: ${ANSI_GREEN}${mr.title} - ${ANSI_GREEN}${mr.author.name}
@@ -111,41 +107,23 @@ private fun getMergeRequests(): List<MergeRequest> {
   val listType = Types.newParameterizedType(List::class.java, MergeRequest::class.java)
   val adapter = moshi.adapter<List<MergeRequest>>(listType)
 
-  // Command to execute the API call
-  val command = listOf(
-      "curl",
-      "-H", "PRIVATE-TOKEN: $gitlabApiToken",
-      "https://gitlab.com/api/v4/projects/40196776/merge_requests?state=opened",
-  )
+  // Build the request
+  val request = Request.Builder()
+      .url("https://gitlab.com/api/v4/projects/40196776/merge_requests?state=opened")
+      .addHeader("PRIVATE-TOKEN", gitlabApiToken).build()
 
-  // Temporarily store output in a file
-  val tempFile = File.createTempFile("response", ".json")
-
-  val mergeRequests: List<MergeRequest> = try {
-
-    val process =
-        ProcessBuilder(command)
-            .redirectOutput(ProcessBuilder.Redirect.to(tempFile))
-            .start()
-    process.waitFor()
-
-    // Read the output
-    val source = tempFile.source().buffer()
-    val jsonOutput = source.readUtf8()
-    source.close()
-
-    // Parse JSON to Kotlin object
-    adapter.fromJson(jsonOutput) ?: emptyList()
+  return try {
+    // Execute the request
+    val response = client.newCall(request).execute()
+    response.use {
+      if (!it.isSuccessful) throw IOException("Unexpected code $it")
+      val jsonOutput = it.body!!.source()
+      adapter.fromJson(jsonOutput) ?: emptyList()
+    }
   } catch (e: IOException) {
     e.printStackTrace()
-    println("Error: ${e.message}")
     emptyList()
-  } finally {
-    // Clean up the temporary file
-    tempFile.delete()
   }
-
-  return mergeRequests
 }
 
 data class GitlabProject(val name: String, val id: Int)
