@@ -116,7 +116,7 @@ private fun getMergeRequests(): List<MergeRequest> {
     // Execute the request
     val response = client.newCall(request).execute()
     response.use {
-      if (!it.isSuccessful) throw IOException("Unexpected code $it")
+      if (!it.isSuccessful) throw IOException("[${it.code}] ${it.body?.string()}")
       val jsonOutput = it.body!!.source()
       adapter.fromJson(jsonOutput) ?: emptyList()
     }
